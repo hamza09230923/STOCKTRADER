@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import os
+import psycopg2
 
 # ==============================================================================
 # Page Configuration
