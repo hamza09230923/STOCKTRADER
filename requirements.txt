@@ -1,0 +1,13 @@
+pandas
+yfinance
+nltk
+transformers
+torch
+psycopg2-binary
+python-dotenv
+newsapi-python
+finlight-client
+streamlit
+plotly
+scikit-learn
+xgboost
