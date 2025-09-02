@@ -15,18 +15,34 @@ st.set_page_config(
 )
 
 # ==============================================================================
+# Main Dashboard Intro
+# ==============================================================================
+st.title("Stock Price and News Sentiment Tracker  Fintech SaaS")
+
+st.markdown("""
+Welcome to the dashboard. This tool visualizes the relationship between stock prices and the sentiment of financial news.
+Use the sidebar to select a stock ticker and a date range to explore the data.
+""")
+
+# ==============================================================================
 # Data Loading & Caching
 # ==============================================================================
 @st.cache_data
 def load_data():
     """
-    Loads the processed stock and sentiment data, trying the database first
-    and falling back to a local CSV.
+    Loads the processed stock and sentiment data. This function is cached
+    to ensure data is loaded only once per session, improving performance.
+    It first attempts to load from a PostgreSQL database and falls back to a
+    local CSV file if the database connection fails.
     """
     try:
         conn = psycopg2.connect(
-            dbname="stock_sentiment", user="postgres", password="password",
-            host="localhost", port="5432", connect_timeout=3
+            dbname="stock_sentiment",
+            user="postgres",
+            password="password",
+            host="localhost",
+            port="5432",
+            connect_timeout=3
         )
         st.info("Database connection successful. Loading data...")
         df = pd.read_sql("SELECT * FROM stock_data ORDER BY \"Date\" ASC", conn)
@@ -42,28 +58,23 @@ def load_data():
             st.error("Fatal Error: Could not connect to the database AND the fallback file 'data/processed_data.csv' was not found.")
             return None
 
-# Load the base data
+# Load base data
 data_df = load_data()
+if data_df is None:
+    st.stop()
 
 # ==============================================================================
-# Sidebar Controls & Data Filtering
+# Sidebar Controls
 # ==============================================================================
 st.sidebar.header("Dashboard Controls")
 
-if data_df is None:
-    st.sidebar.error("Data could not be loaded. Dashboard cannot proceed.")
-    st.stop()
-
-# Ticker selection
 tickers = sorted(data_df['Ticker'].unique())
 selected_ticker = st.sidebar.selectbox("Select Stock Ticker", tickers)
 
-# Filter data for the selected ticker to find its date range
 ticker_df = data_df[data_df['Ticker'] == selected_ticker]
 min_date = ticker_df['Date'].min().date()
 max_date = ticker_df['Date'].max().date()
 
-# Date range selection
 selected_start_date = st.sidebar.date_input("Start Date", value=min_date, min_value=min_date, max_value=max_date)
 selected_end_date = st.sidebar.date_input("End Date", value=max_date, min_value=min_date, max_value=max_date)
 
@@ -71,23 +82,21 @@ if selected_start_date > selected_end_date:
     st.sidebar.error("Error: Start date must be before end date.")
     st.stop()
 
-# Create the final filtered DataFrame based on user selections
 filtered_df = ticker_df[
     (ticker_df['Date'].dt.date >= selected_start_date) &
     (ticker_df['Date'].dt.date <= selected_end_date)
 ]
 
-# About section
 st.sidebar.header("About")
 st.sidebar.info(
     "This dashboard visualizes stock prices and financial news sentiment. "
-    "The data pipeline is built with Python, and the dashboard is powered by Streamlit."
+    "The data pipeline is built with Python, and the dashboard is powered by Streamlit. "
+    "Sentiment analysis is performed using VADER and FinBERT models."
 )
 
 # ==============================================================================
 # Main Page Content
 # ==============================================================================
-st.title("Stock Price and News Sentiment Tracker")
 st.subheader(f"Displaying data for: {selected_ticker}")
 
 # --- Key Metrics ---
@@ -111,14 +120,14 @@ else:
 # --- Charts ---
 st.header("Charts")
 if not filtered_df.empty:
-    # Price and Volume Chart
+    # Price & Volume
     fig_price = go.Figure()
     fig_price.add_trace(go.Scatter(x=filtered_df['Date'], y=filtered_df['Close'], name='Close Price', line=dict(color='#1E88E5', width=2)))
     fig_price.add_trace(go.Bar(x=filtered_df['Date'], y=filtered_df['Volume'], name='Volume', yaxis='y2', marker_color='#D6EAF8'))
     fig_price.update_layout(title=f'<b>Price and Volume for {selected_ticker}</b>', template="plotly_white", yaxis=dict(title='Price (USD)'), yaxis2=dict(title='Volume', overlaying='y', side='right', showgrid=False), legend=dict(x=0.01, y=0.99, bordercolor='lightgrey', borderwidth=1))
     st.plotly_chart(fig_price, use_container_width=True)
 
-    # Sentiment and Article Count Charts
+    # Sentiment & Articles
     col1, col2 = st.columns(2)
     with col1:
         fig_sentiment = go.Figure()
@@ -134,6 +143,7 @@ if not filtered_df.empty:
 else:
     st.warning("No data available to display charts for the selected date range.")
 
-# --- Raw Data View ---
+# --- Raw Data ---
 with st.expander("View Raw Data for Selection"):
     st.dataframe(filtered_df)
+
