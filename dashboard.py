@@ -110,7 +110,7 @@ if not filtered_df.empty:
     start_price = filtered_df['Close'].iloc[0]
     end_price = filtered_df['Close'].iloc[-1]
     price_change = end_price - start_price
-    price_change_pct = (price_change / start_price) * 100
+    price_change_pct = (price_change / start_price) * 100 if start_price != 0 else 0
     avg_finbert_score = filtered_df['finbert_avg_score'].mean()
     total_articles = filtered_df['article_count'].sum()
 
@@ -160,8 +160,14 @@ if not filtered_df.empty:
     col1, col2 = st.columns(2)
     with col1:
         fig_sentiment = go.Figure()
-        fig_sentiment.add_trace(go.Scatter(x=filtered_df['Date'], y=filtered_df['vader_avg_score'], name='VADER Score', mode='lines', line_color='#29B6F6'))  # Light Blue
-        fig_sentiment.add_trace(go.Scatter(x=filtered_df['Date'], y=filtered_df['finbert_avg_score'], name='FinBERT Score', mode='lines', line_color='#FFEE58'))  # Yellow
+        fig_sentiment.add_trace(go.Scatter(
+            x=filtered_df['Date'], y=filtered_df['vader_avg_score'], name='VADER Score',
+            mode='lines', line_color='#29B6F6'  # Light Blue
+        ))
+        fig_sentiment.add_trace(go.Scatter(
+            x=filtered_df['Date'], y=filtered_df['finbert_avg_score'], name='FinBERT Score',
+            mode='lines', line_color='#FFEE58'  # Yellow
+        ))
         fig_sentiment.update_layout(
             title=f'<b>Daily Average Sentiment Scores</b>',
             template="plotly_dark",
@@ -171,7 +177,10 @@ if not filtered_df.empty:
         st.plotly_chart(fig_sentiment, use_container_width=True)
     with col2:
         fig_articles = go.Figure()
-        fig_articles.add_trace(go.Bar(x=filtered_df['Date'], y=filtered_df['article_count'], name='Article Count', marker_color='rgba(0, 196, 255, 0.5)'))  # Semi-transparent cyan
+        fig_articles.add_trace(go.Bar(
+            x=filtered_df['Date'], y=filtered_df['article_count'],
+            name='Article Count', marker_color='rgba(0, 196, 255, 0.5)'  # Semi-transparent cyan
+        ))
         fig_articles.update_layout(
             title=f'<b>Daily News Article Count</b>',
             template="plotly_dark",
@@ -184,3 +193,4 @@ else:
 # --- Raw Data View ---
 with st.expander("View Raw Data for Selection"):
     st.dataframe(filtered_df)
+

@@ -19,10 +19,9 @@ TICKERS = ["AAPL", "TSLA", "NVDA", "JPM", "AMZN"]
 PROCESSED_CSV_PATH = "data/processed_data.csv"
 DB_TABLE_NAME = "stock_data"
 
-
-# ==============================================================================
-# STEP 1: STOCK DATA EXTRACTION
-# ==============================================================================
+# ============================================================================== 
+# STEP 1: STOCK DATA EXTRACTION 
+# ============================================================================== 
 def fetch_stock_data(tickers):
     print("\n--- Step 1: Fetching Stock Data ---")
     end_date = datetime.now()
@@ -36,10 +35,9 @@ def fetch_stock_data(tickers):
     print("Stock data fetched successfully.")
     return all_data
 
-
-# ==============================================================================
-# STEP 2: NEWS DATA EXTRACTION
-# ==============================================================================
+# ============================================================================== 
+# STEP 2: NEWS DATA EXTRACTION 
+# ============================================================================== 
 def fetch_all_news(api, tickers):
     print("\n--- Step 2: Fetching News Data ---")
     all_articles = []
@@ -73,21 +71,20 @@ def fetch_all_news(api, tickers):
     print("News data fetched successfully.")
     return pd.DataFrame(all_articles)
 
-
-# ==============================================================================
-# STEP 3: DATA TRANSFORMATION
-# ==============================================================================
+# ============================================================================== 
+# STEP 3: DATA TRANSFORMATION 
+# ============================================================================== 
 def transform_data(stock_df, news_df):
     print("\n--- Step 3: Transforming Data ---")
 
-    # 3a: Analyze Sentiment
+    # Analyze sentiment
     news_df['title'] = news_df['title'].astype(str)
     news_df['vader_score'] = news_df['title'].apply(analyze_vader_sentiment)
     finbert_results = news_df['title'].apply(lambda x: pd.Series(analyze_finbert_sentiment(x)))
     finbert_results.columns = ['finbert_label', 'finbert_score']
     news_with_sentiment = pd.concat([news_df, finbert_results], axis=1)
 
-    # 3b: Aggregate Sentiment
+    # Aggregate sentiment
     label_to_score = {'positive': 1, 'neutral': 0, 'negative': -1}
     news_with_sentiment['finbert_numeric_score'] = news_with_sentiment['finbert_label'].map(label_to_score)
     news_with_sentiment['finbert_weighted_score'] = (
@@ -107,7 +104,7 @@ def transform_data(stock_df, news_df):
         'finbert_weighted_score': 'finbert_avg_score'
     }, inplace=True)
 
-    # 3c: Merge Data
+    # Merge data
     stock_df['Date'] = pd.to_datetime(stock_df['Date'].dt.date)
     daily_sentiment['Date'] = pd.to_datetime(daily_sentiment['Date'])
     final_df = pd.merge(stock_df, daily_sentiment, on=['Date', 'Ticker'], how='left')
@@ -116,10 +113,9 @@ def transform_data(stock_df, news_df):
     print("Data transformation complete.")
     return final_df
 
-
-# ==============================================================================
-# STEP 4: DATABASE OPERATIONS
-# ==============================================================================
+# ============================================================================== 
+# STEP 4: DATABASE OPERATIONS 
+# ============================================================================== 
 def get_db_connection(args):
     print("\n--- Step 4a: Connecting to Database ---")
     try:
@@ -136,11 +132,10 @@ def get_db_connection(args):
         print(f"CRITICAL: Could not connect to the database: {e}")
         return None
 
-
 def setup_database_table(conn):
     print("\n--- Step 4b: Setting up Database Table ---")
-    create_table_query = """
-    CREATE TABLE stock_data (
+    create_table_query = f"""
+    CREATE TABLE {DB_TABLE_NAME} (
         Date DATE NOT NULL,
         Ticker VARCHAR(10) NOT NULL,
         Close NUMERIC(15, 4) NOT NULL,
@@ -158,7 +153,6 @@ def setup_database_table(conn):
         cur.execute(create_table_query)
     print(f"Table '{DB_TABLE_NAME}' created successfully.")
 
-
 def load_data_to_db(conn, df):
     print("\n--- Step 4c: Loading Data into Database ---")
     buffer = io.StringIO()
@@ -169,10 +163,9 @@ def load_data_to_db(conn, df):
         cur.copy_expert(sql=f"COPY {DB_TABLE_NAME} ({columns}) FROM STDIN WITH (FORMAT CSV)", file=buffer)
     print(f"Successfully loaded {len(df)} records.")
 
-
-# ==============================================================================
-# MAIN ORCHESTRATOR
-# ==============================================================================
+# ============================================================================== 
+# MAIN ORCHESTRATOR 
+# ============================================================================== 
 def run_the_pipeline(args):
     """Main ETL pipeline logic."""
     stock_df = fetch_stock_data(TICKERS)
@@ -209,7 +202,6 @@ def run_the_pipeline(args):
     else:
         print("\nPipeline halted due to errors in data extraction.")
 
-
 def get_pipeline_args():
     """Sets up and parses command-line arguments for the pipeline."""
     parser = argparse.ArgumentParser(description="Run the full data pipeline for stock and news sentiment analysis.")
@@ -221,7 +213,6 @@ def get_pipeline_args():
     parser.add_argument("--db-port", default=os.getenv("DB_PORT", "5432"), help="Database port")
     parser.add_argument("--skip-db", action="store_true", help="Skip all database operations.")
     return parser
-
 
 if __name__ == "__main__":
     print("===== Starting End-to-End Data Pipeline =====")
