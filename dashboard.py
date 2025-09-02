@@ -60,7 +60,7 @@ tickers = sorted(data_df['Ticker'].unique())
 selected_ticker = st.sidebar.selectbox("Select Stock Ticker", tickers)
 
 # Chart type selection
-chart_type = st.sidebar.radio("Select Chart Type", ["Line", "Candlestick"], index=1) # Default to Candlestick
+chart_type = st.sidebar.radio("Select Chart Type", ["Line", "Candlestick"], index=1)  # Default to Candlestick
 
 # Filter data for the selected ticker to find its date range
 ticker_df = data_df[data_df['Ticker'] == selected_ticker]
@@ -131,19 +131,19 @@ if not filtered_df.empty:
     if chart_type == "Line":
         fig_price.add_trace(go.Scatter(
             x=filtered_df['Date'], y=filtered_df['Close'], name='Close Price',
-            line=dict(color='#00C4FF', width=2) # Futuristic cyan
+            line=dict(color='#00C4FF', width=2)  # Futuristic cyan
         ))
     elif chart_type == "Candlestick":
         fig_price.add_trace(go.Candlestick(
             x=filtered_df['Date'], open=filtered_df['Open'], high=filtered_df['High'],
             low=filtered_df['Low'], close=filtered_df['Close'], name='Price',
-            increasing_line_color='#00C4FF', decreasing_line_color='#FF6B6B' # Cyan up, Red down
+            increasing_line_color='#00C4FF', decreasing_line_color='#FF6B6B'  # Cyan up, Red down
         ))
 
     # Add volume bars on a secondary y-axis
     fig_price.add_trace(go.Bar(
         x=filtered_df['Date'], y=filtered_df['Volume'], name='Volume',
-        yaxis='y2', marker_color='rgba(0, 196, 255, 0.2)' # Transparent cyan
+        yaxis='y2', marker_color='rgba(0, 196, 255, 0.2)'  # Transparent cyan
     ))
 
     fig_price.update_layout(
@@ -160,8 +160,8 @@ if not filtered_df.empty:
     col1, col2 = st.columns(2)
     with col1:
         fig_sentiment = go.Figure()
-        fig_sentiment.add_trace(go.Scatter(x=filtered_df['Date'], y=filtered_df['vader_avg_score'], name='VADER Score', mode='lines', line_color='#29B6F6')) # Light Blue
-        fig_sentiment.add_trace(go.Scatter(x=filtered_df['Date'], y=filtered_df['finbert_avg_score'], name='FinBERT Score', mode='lines', line_color='#FFEE58')) # Yellow
+        fig_sentiment.add_trace(go.Scatter(x=filtered_df['Date'], y=filtered_df['vader_avg_score'], name='VADER Score', mode='lines', line_color='#29B6F6'))  # Light Blue
+        fig_sentiment.add_trace(go.Scatter(x=filtered_df['Date'], y=filtered_df['finbert_avg_score'], name='FinBERT Score', mode='lines', line_color='#FFEE58'))  # Yellow
         fig_sentiment.update_layout(
             title=f'<b>Daily Average Sentiment Scores</b>',
             template="plotly_dark",
@@ -171,7 +171,7 @@ if not filtered_df.empty:
         st.plotly_chart(fig_sentiment, use_container_width=True)
     with col2:
         fig_articles = go.Figure()
-        fig_articles.add_trace(go.Bar(x=filtered_df['Date'], y=filtered_df['article_count'], name='Article Count', marker_color='rgba(0, 196, 255, 0.5)')) # Semi-transparent cyan
+        fig_articles.add_trace(go.Bar(x=filtered_df['Date'], y=filtered_df['article_count'], name='Article Count', marker_color='rgba(0, 196, 255, 0.5)'))  # Semi-transparent cyan
         fig_articles.update_layout(
             title=f'<b>Daily News Article Count</b>',
             template="plotly_dark",
