@@ -15,34 +15,18 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# Main Dashboard Intro
-# ==============================================================================
-st.title("Stock Price and News Sentiment Tracker  Fintech SaaS")
-
-st.markdown("""
-Welcome to the dashboard. This tool visualizes the relationship between stock prices and the sentiment of financial news.
-Use the sidebar to select a stock ticker and a date range to explore the data.
-""")
-
-# ==============================================================================
 # Data Loading & Caching
 # ==============================================================================
 @st.cache_data
 def load_data():
     """
-    Loads the processed stock and sentiment data. This function is cached
-    to ensure data is loaded only once per session, improving performance.
-    It first attempts to load from a PostgreSQL database and falls back to a
-    local CSV file if the database connection fails.
+    Loads the processed stock and sentiment data, trying the database first
+    and falling back to a local CSV.
     """
     try:
         conn = psycopg2.connect(
-            dbname="stock_sentiment",
-            user="postgres",
-            password="password",
-            host="localhost",
-            port="5432",
-            connect_timeout=3
+            dbname="stock_sentiment", user="postgres", password="password",
+            host="localhost", port="5432", connect_timeout=3
         )
         st.info("Database connection successful. Loading data...")
         df = pd.read_sql("SELECT * FROM stock_data ORDER BY \"Date\" ASC", conn)
@@ -58,23 +42,31 @@ def load_data():
             st.error("Fatal Error: Could not connect to the database AND the fallback file 'data/processed_data.csv' was not found.")
             return None
 
-# Load base data
+# Load the base data
 data_df = load_data()
-if data_df is None:
-    st.stop()
 
 # ==============================================================================
-# Sidebar Controls
+# Sidebar Controls & Data Filtering
 # ==============================================================================
 st.sidebar.header("Dashboard Controls")
 
+if data_df is None:
+    st.sidebar.error("Data could not be loaded. Dashboard cannot proceed.")
+    st.stop()
+
+# Ticker selection
 tickers = sorted(data_df['Ticker'].unique())
 selected_ticker = st.sidebar.selectbox("Select Stock Ticker", tickers)
 
+# Chart type selection
+chart_type = st.sidebar.radio("Select Chart Type", ["Line", "Candlestick"], index=1) # Default to Candlestick
+
+# Filter data for the selected ticker to find its date range
 ticker_df = data_df[data_df['Ticker'] == selected_ticker]
 min_date = ticker_df['Date'].min().date()
 max_date = ticker_df['Date'].max().date()
 
+# Date range selection
 selected_start_date = st.sidebar.date_input("Start Date", value=min_date, min_value=min_date, max_value=max_date)
 selected_end_date = st.sidebar.date_input("End Date", value=max_date, min_value=min_date, max_value=max_date)
 
@@ -82,21 +74,23 @@ if selected_start_date > selected_end_date:
     st.sidebar.error("Error: Start date must be before end date.")
     st.stop()
 
+# Create the final filtered DataFrame based on user selections
 filtered_df = ticker_df[
     (ticker_df['Date'].dt.date >= selected_start_date) &
     (ticker_df['Date'].dt.date <= selected_end_date)
 ]
 
+# About section
 st.sidebar.header("About")
 st.sidebar.info(
     "This dashboard visualizes stock prices and financial news sentiment. "
-    "The data pipeline is built with Python, and the dashboard is powered by Streamlit. "
-    "Sentiment analysis is performed using VADER and FinBERT models."
+    "The data pipeline is built with Python, and the dashboard is powered by Streamlit."
 )
 
 # ==============================================================================
 # Main Page Content
 # ==============================================================================
+st.title("Stock Price and News Sentiment Tracker")
 st.subheader(f"Displaying data for: {selected_ticker}")
 
 # --- Key Metrics ---
@@ -120,30 +114,62 @@ else:
 # --- Charts ---
 st.header("Charts")
 if not filtered_df.empty:
-    # Price & Volume
+    # --- Price and Volume Chart ---
     fig_price = go.Figure()
-    fig_price.add_trace(go.Scatter(x=filtered_df['Date'], y=filtered_df['Close'], name='Close Price', line=dict(color='#1E88E5', width=2)))
-    fig_price.add_trace(go.Bar(x=filtered_df['Date'], y=filtered_df['Volume'], name='Volume', yaxis='y2', marker_color='#D6EAF8'))
-    fig_price.update_layout(title=f'<b>Price and Volume for {selected_ticker}</b>', template="plotly_white", yaxis=dict(title='Price (USD)'), yaxis2=dict(title='Volume', overlaying='y', side='right', showgrid=False), legend=dict(x=0.01, y=0.99, bordercolor='lightgrey', borderwidth=1))
+
+    if chart_type == "Line":
+        fig_price.add_trace(go.Scatter(
+            x=filtered_df['Date'], y=filtered_df['Close'], name='Close Price',
+            line=dict(color='#00C4FF', width=2) # Futuristic cyan
+        ))
+    elif chart_type == "Candlestick":
+        fig_price.add_trace(go.Candlestick(
+            x=filtered_df['Date'], open=filtered_df['Open'], high=filtered_df['High'],
+            low=filtered_df['Low'], close=filtered_df['Close'], name='Price',
+            increasing_line_color='#00C4FF', decreasing_line_color='#FF6B6B' # Cyan up, Red down
+        ))
+
+    # Add volume bars on a secondary y-axis
+    fig_price.add_trace(go.Bar(
+        x=filtered_df['Date'], y=filtered_df['Volume'], name='Volume',
+        yaxis='y2', marker_color='rgba(0, 196, 255, 0.2)' # Transparent cyan
+    ))
+
+    fig_price.update_layout(
+        title=f'<b>Price and Volume for {selected_ticker} ({chart_type} Chart)</b>',
+        template="plotly_dark",
+        yaxis=dict(title='Price (USD)', gridcolor='rgba(255,255,255,0.1)'),
+        yaxis2=dict(title='Volume', overlaying='y', side='right', showgrid=False),
+        legend=dict(x=0.01, y=0.99),
+        xaxis_rangeslider_visible=False
+    )
     st.plotly_chart(fig_price, use_container_width=True)
 
-    # Sentiment & Articles
+    # --- Sentiment and Article Count Charts ---
     col1, col2 = st.columns(2)
     with col1:
         fig_sentiment = go.Figure()
-        fig_sentiment.add_trace(go.Scatter(x=filtered_df['Date'], y=filtered_df['vader_avg_score'], name='VADER Score', mode='lines', line_color='#2ECC71'))
-        fig_sentiment.add_trace(go.Scatter(x=filtered_df['Date'], y=filtered_df['finbert_avg_score'], name='FinBERT Score', mode='lines', line_color='#F39C12'))
-        fig_sentiment.update_layout(title=f'<b>Daily Average Sentiment Scores</b>', template="plotly_white", yaxis=dict(title='Average Sentiment Score'), legend=dict(x=0.01, y=0.99, bordercolor='lightgrey', borderwidth=1))
+        fig_sentiment.add_trace(go.Scatter(x=filtered_df['Date'], y=filtered_df['vader_avg_score'], name='VADER Score', mode='lines', line_color='#29B6F6')) # Light Blue
+        fig_sentiment.add_trace(go.Scatter(x=filtered_df['Date'], y=filtered_df['finbert_avg_score'], name='FinBERT Score', mode='lines', line_color='#FFEE58')) # Yellow
+        fig_sentiment.update_layout(
+            title=f'<b>Daily Average Sentiment Scores</b>',
+            template="plotly_dark",
+            yaxis=dict(title='Average Sentiment Score', gridcolor='rgba(255,255,255,0.1)'),
+            legend=dict(x=0.01, y=0.99)
+        )
         st.plotly_chart(fig_sentiment, use_container_width=True)
     with col2:
         fig_articles = go.Figure()
-        fig_articles.add_trace(go.Bar(x=filtered_df['Date'], y=filtered_df['article_count'], name='Article Count', marker_color='#85C1E9'))
-        fig_articles.update_layout(title=f'<b>Daily News Article Count</b>', template="plotly_white", yaxis=dict(title='Number of Articles'))
+        fig_articles.add_trace(go.Bar(x=filtered_df['Date'], y=filtered_df['article_count'], name='Article Count', marker_color='rgba(0, 196, 255, 0.5)')) # Semi-transparent cyan
+        fig_articles.update_layout(
+            title=f'<b>Daily News Article Count</b>',
+            template="plotly_dark",
+            yaxis=dict(title='Number of Articles', gridcolor='rgba(255,255,255,0.1)')
+        )
         st.plotly_chart(fig_articles, use_container_width=True)
 else:
     st.warning("No data available to display charts for the selected date range.")
 
-# --- Raw Data ---
+# --- Raw Data View ---
 with st.expander("View Raw Data for Selection"):
     st.dataframe(filtered_df)
-
