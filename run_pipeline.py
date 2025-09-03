@@ -220,4 +220,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
     run_the_pipeline(args)
     print("\n===== End-to-End Data Pipeline Finished =====")
-
