@@ -11,3 +11,6 @@ streamlit
 plotly
 scikit-learn
 xgboost
+streamlit-autorefresh
+schedule
+
