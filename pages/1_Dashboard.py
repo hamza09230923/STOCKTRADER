@@ -30,11 +30,7 @@ tickers = sorted(data_df['Ticker'].unique())
 if not tickers:
     st.warning("No tickers found in the data. Please run the data pipeline.")
     st.stop()
-selected_ticker = st.sidebar.selectbox(
-    "Select Stock Ticker",
-    tickers,
-    help="This list is populated with tickers that have processed data available."
-)
+selected_ticker = st.sidebar.selectbox("Select Stock Ticker", tickers)
 
 chart_type = st.sidebar.radio("Select Chart Type", ["Line", "Candlestick"], index=1)
 

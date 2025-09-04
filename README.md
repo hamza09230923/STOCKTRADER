@@ -22,10 +22,6 @@ A comprehensive, end-to-end data pipeline and visualization dashboard that track
     *   Trains both a Logistic Regression and an XGBoost model.
     *   Saves the trained models for future use.
 
-*   **Dynamic Ticker Management:**
-    *   Add or remove any stock ticker to track via a dedicated Settings page in the UI.
-    *   The data pipeline automatically detects and processes new tickers.
-
 *   **Automated Scheduler (`scheduler.py`):**
     *   Runs the data pipeline automatically at a configurable interval.
 
@@ -113,14 +109,8 @@ python scripts/train_models.py --api-key "your_finlight_api_key"
 ├── README.md               # This file
 ├── requirements.txt        # Project dependencies
 ├── run_pipeline.py         # Master script for the ETL data pipeline
-│   ├── 3_About.py
-│   └── 4_Settings.py       # Page to manage tracked tickers
 └── scheduler.py            # Script to run the pipeline on a schedule
 ```
-
-### 5. Managing Tickers
-
-Navigate to the "Settings" page in the dashboard to add or remove tickers from the tracking list. The data pipeline will automatically handle these changes on its next run.
 
 ## 部署
 
