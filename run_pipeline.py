@@ -23,7 +23,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 from src.sentiment_analysis import analyze_vader_sentiment, analyze_finbert_sentiment
 
 # ============================================================================== 
-# STEP 1: STOCK DATA EXTRACTION 
+# STEP 1: STOCK DATA EXTRACTION
 # ============================================================================== 
 def fetch_stock_data(tickers, retries=3, delay=5):
     print("\n--- Step 1: Fetching Stock Data ---")
@@ -44,9 +44,11 @@ def fetch_stock_data(tickers, retries=3, delay=5):
     print("CRITICAL: All attempts to fetch stock data failed.")
     return None
 
+
 # ============================================================================== 
 # STEP 2: NEWS DATA EXTRACTION 
 # ============================================================================== 
+
 def fetch_all_news(api, tickers, retries=3, delay=5):
     print("\n--- Step 2: Fetching News Data ---")
     all_articles = []
@@ -86,7 +88,7 @@ def fetch_all_news(api, tickers, retries=3, delay=5):
     return pd.DataFrame(all_articles)
 
 # ============================================================================== 
-# STEP 3: DATA TRANSFORMATION 
+# STEP 3: DATA TRANSFORMATION
 # ============================================================================== 
 def transform_data(stock_df, news_df):
     print("\n--- Step 3: Transforming Data ---")
@@ -132,9 +134,11 @@ def transform_data(stock_df, news_df):
     print("Data transformation complete.")
     return final_df
 
-# ============================================================================== 
-# STEP 4: DATABASE OPERATIONS 
-# ============================================================================== 
+
+# ==============================================================================
+# STEP 4: DATABASE OPERATIONS
+# ==============================================================================
+
 def get_db_connection():
     print("\n--- Step 4a: Connecting to Database ---")
     try:
