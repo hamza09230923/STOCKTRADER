@@ -1,0 +1,30 @@
+# --- Centralized Configuration File (Example) ---
+
+# This is an example configuration file.
+# 1. Rename this file to `config.py`.
+# 2. Fill in your actual credentials.
+# 3. Make sure `config.py` is listed in your `.gitignore` file to keep your secrets safe.
+
+# Finlight API Key
+# You can get a free API key from https://finlight.me/
+# It is recommended to set this as an environment variable for security.
+import os
+FINLIGHT_API_KEY = os.getenv("FINLIGHT_API_KEY", "YOUR_API_KEY_HERE")
+
+# Stock Tickers to Track
+# A list of stock tickers that the pipeline will process.
+TICKERS = ["AAPL", "TSLA", "NVDA", "JPM", "AMZN"]
+
+# Database Connection Details
+# It is recommended to use environment variables for these settings.
+DB_NAME = os.getenv("DB_NAME", "stock_sentiment")
+DB_USER = os.getenv("DB_USER", "postgres")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "password")
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_PORT = os.getenv("DB_PORT", "5432")
+
+# Database Table Name
+DB_TABLE_NAME = "stock_data"
+
+# Data directory
+PROCESSED_CSV_PATH = "data/processed_data.csv"
