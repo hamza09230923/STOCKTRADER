@@ -7,7 +7,8 @@ from streamlit_autorefresh import st_autorefresh
 
 # Add src to path to import dashboard_utils
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
-from dashboard_utils import load_data
+from dashboard_utils import load_data, add_ticker_to_config
+import subprocess
 
 st.set_page_config(
     page_title="Dashboard",
@@ -48,6 +49,31 @@ selected_start_date, selected_end_date = st.sidebar.date_input(
     min_value=min_date,
     max_value=max_date,
 )
+
+# --- Add New Ticker ---
+st.sidebar.markdown("---")
+st.sidebar.header("Add New Ticker")
+new_ticker = st.sidebar.text_input("Enter a new stock ticker (e.g., GOOGL):")
+if st.sidebar.button("Add Ticker"):
+    if new_ticker:
+        st.sidebar.info(f"Adding {new_ticker.upper()}... this may take a moment.")
+        add_ticker_to_config(new_ticker)
+
+        # Run the pipeline for the new ticker
+        result = subprocess.run(
+            ["python", "run_pipeline.py", "--ticker", new_ticker, "--skip-db"],
+            capture_output=True, text=True
+        )
+
+        if result.returncode == 0:
+            st.sidebar.success(f"Ticker {new_ticker.upper()} added successfully!")
+            # Clear cache and rerun
+            st.cache_data.clear()
+            st.rerun()
+        else:
+            st.sidebar.error(f"Failed to add ticker. Error:\n{result.stderr}")
+    else:
+        st.sidebar.warning("Please enter a ticker.")
 
 if selected_start_date > selected_end_date:
     st.sidebar.error("Error: Start date must be before end date.")

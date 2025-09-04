@@ -37,3 +37,31 @@ def load_data():
         except FileNotFoundError:
             st.error(f"Fatal Error: Could not connect to the database AND the fallback file '{config.PROCESSED_CSV_PATH}' was not found.")
             return None, "error"
+
+def add_ticker_to_config(ticker):
+    """
+    Adds a new ticker to the TICKERS list in the config.py file.
+    """
+    import re
+    with open('config.py', 'r') as f:
+        content = f.read()
+
+    tickers_list_str_match = re.search(r'TICKERS = \[(.*?)\]', content)
+    if tickers_list_str_match:
+        tickers_list_str = tickers_list_str_match.group(1)
+        tickers = [t.strip().strip("'\"") for t in tickers_list_str.split(',') if t.strip()]
+    else:
+        tickers = []
+
+    if ticker.upper() not in tickers:
+        tickers.append(ticker.upper())
+        new_tickers_list_str = ', '.join([f'"{t}"' for t in tickers])
+
+        if tickers_list_str_match:
+            new_content = re.sub(r'TICKERS = \[.*?\]', f'TICKERS = [{new_tickers_list_str}]', content)
+        else:
+            # If TICKERS list not found, add it to the end of the file.
+            new_content = content + f'\nTICKERS = [{new_tickers_list_str}]\n'
+
+        with open('config.py', 'w') as f:
+            f.write(new_content)

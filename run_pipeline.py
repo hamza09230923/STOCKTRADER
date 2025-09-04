@@ -222,14 +222,21 @@ def upsert_data_to_db(conn, df):
 # ============================================================================== 
 def run_the_pipeline(args):
     """Main ETL pipeline logic."""
-    stock_df = fetch_stock_data(config.TICKERS)
+    if args.ticker:
+        tickers = [args.ticker.upper()]
+        print(f"Running pipeline for single ticker: {tickers[0]}")
+    else:
+        tickers = config.TICKERS
+        print("Running pipeline for all tickers in config.py")
+
+    stock_df = fetch_stock_data(tickers)
 
     if config.FINLIGHT_API_KEY == "YOUR_API_KEY_HERE":
         print("WARNING: Finlight API key is not set in config.py. Skipping news fetching.")
         news_df = pd.DataFrame()
     else:
         api = FinlightApi(ApiConfig(api_key=config.FINLIGHT_API_KEY))
-        news_df = fetch_all_news(api, config.TICKERS)
+        news_df = fetch_all_news(api, tickers)
 
     if stock_df is not None:
         final_df = transform_data(stock_df, news_df)
@@ -265,6 +272,7 @@ def get_pipeline_args():
     """Sets up and parses command-line arguments for the pipeline."""
     parser = argparse.ArgumentParser(description="Run the full data pipeline for stock and news sentiment analysis.")
     parser.add_argument("--skip-db", action="store_true", help="Skip all database operations.")
+    parser.add_argument("--ticker", type=str, help="Run the pipeline for a single stock ticker.")
     return parser
 
 if __name__ == "__main__":
