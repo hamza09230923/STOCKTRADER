@@ -69,6 +69,7 @@ if st.sidebar.button("Add Ticker"):
             st.sidebar.success(f"Ticker {new_ticker.upper()} added successfully!")
             # Clear cache and rerun
             st.cache_data.clear()
+
             st.rerun()
         else:
             st.sidebar.error(f"Failed to add ticker. Error:\n{result.stderr}")
