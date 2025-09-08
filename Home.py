@@ -13,24 +13,28 @@ st.set_page_config(
 )
 
 # --- Main Page Content ---
-st.title("Welcome to the Stock & Sentiment Tracker!")
+st.title("🏠 Welcome to the Stock & Sentiment Tracker!")
+st.markdown("This application provides a comprehensive platform to analyze stock market data and financial news sentiment. Navigate through the different pages using the sidebar to explore the features.")
 st.markdown("---")
-st.markdown("""
-This application provides a comprehensive platform to analyze stock market data and financial news sentiment.
-Navigate through the different pages using the sidebar to explore the features.
 
-### 📈 Dashboard
-The main dashboard for visualizing stock prices, volume, and sentiment scores over time.
-Select different stocks and date ranges to dive deep into the data.
+# --- Feature Highlights ---
+st.subheader("Key Features")
+col1, col2, col3 = st.columns(3)
 
-### 📊 Data Explorer
-View the raw, processed data in a tabular format. You can sort, filter, and search the data to find exactly what you're looking for.
+with col1:
+    st.markdown("#### 📈 Dashboard")
+    st.markdown("Visualize stock prices, volume, and sentiment scores over time. Dive deep into the data with interactive charts and our ML-powered prediction model.")
 
-### ℹ️ About
-Learn more about the project, its data sources, the technologies used, and the developer behind it.
+with col2:
+    st.markdown("#### 📊 Data Explorer")
+    st.markdown("View the raw, processed data in a tabular format. Sort, filter, and even edit the data to find exactly what you're looking for.")
 
-**To get started, select a page from the sidebar on the left.**
-""")
+with col3:
+    st.markdown("#### ℹ️ About")
+    st.markdown("Learn more about the project, its data sources, the technologies used, and the developer behind it. Find links to the data sources and GitHub repo.")
+
+st.markdown("---")
+st.info("**To get started, select a page from the sidebar on the left.**")
 
 # --- Sidebar ---
 st.sidebar.title("Navigation")

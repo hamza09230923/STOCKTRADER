@@ -22,33 +22,45 @@ if data_df is None:
     st.error("Data could not be loaded. Please ensure the pipeline has run successfully.")
     st.stop()
 
-# --- Interactive Data Table ---
-st.markdown("### Processed Data")
-st.info("Use the column headers to sort the data. Click the fullscreen icon to view more data at once.")
-
-# Use st.dataframe for interactive features
-st.dataframe(data_df)
-
 # --- Data Filtering ---
-st.markdown("### Filter Data")
-st.warning("This is an example of advanced filtering. You can add more complex filters here.")
+st.markdown("### 🔍 Filter and Explore Data")
+st.info("Use the controls below to filter the data. The table is editable, but changes will not be saved.")
+
+# Create a copy of the dataframe to avoid modifying the cached version
+filtered_df = data_df.copy()
 
 col1, col2, col3 = st.columns(3)
 with col1:
     # Filter by Ticker
-    tickers = ["All"] + sorted(data_df['Ticker'].unique())
+    tickers = ["All"] + sorted(filtered_df['Ticker'].unique())
     selected_ticker = st.selectbox("Filter by Ticker", tickers)
     if selected_ticker != "All":
-        data_df = data_df[data_df['Ticker'] == selected_ticker]
+        filtered_df = filtered_df[filtered_df['Ticker'] == selected_ticker]
 
 with col2:
-    # Filter by Sentiment Score
-    sentiment_threshold = st.slider("Filter by FinBERT Score", min_value=-1.0, max_value=1.0, value=0.0, step=0.1)
-    data_df = data_df[data_df['finbert_avg_score'] >= sentiment_threshold]
+    # Filter by Date Range
+    min_date = filtered_df['Date'].min().date()
+    max_date = filtered_df['Date'].max().date()
+    selected_start_date, selected_end_date = st.date_input(
+        "Filter by Date Range",
+        value=(min_date, max_date),
+        min_value=min_date,
+        max_value=max_date,
+    )
+    filtered_df = filtered_df[
+        (filtered_df['Date'].dt.date >= selected_start_date) &
+        (filtered_df['Date'].dt.date <= selected_end_date)
+    ]
 
 with col3:
-    # Filter by Article Count
-    min_articles = st.number_input("Minimum Daily Articles", min_value=0, value=0)
-    data_df = data_df[data_df['article_count'] >= min_articles]
+    # Filter by Sentiment Score
+    sentiment_threshold = st.slider("Minimum FinBERT Score", min_value=-1.0, max_value=1.0, value=-1.0, step=0.1)
+    filtered_df = filtered_df[filtered_df['finbert_avg_score'] >= sentiment_threshold]
 
-st.dataframe(data_df)
+
+# --- Interactive Data Table ---
+st.data_editor(
+    filtered_df,
+    num_rows="dynamic",
+    use_container_width=True
+)
