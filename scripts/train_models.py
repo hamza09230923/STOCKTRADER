@@ -62,7 +62,8 @@ def generate_ml_data(api_key):
 def prepare_data_for_training(df):
     """Splits and scales the feature-engineered data."""
     print("\n--- Step 2: Splitting and Scaling Data ---")
-    X = df.drop(columns=[TARGET_VARIABLE, 'Date', 'Ticker'])
+    # Drop the target, identifiers, and the source of the target ('next_day_close')
+    X = df.drop(columns=[TARGET_VARIABLE, 'Date', 'Ticker', 'next_day_close'])
     y = df[TARGET_VARIABLE]
 
     split_index = int(len(df) * TRAIN_SPLIT_FRACTION)
