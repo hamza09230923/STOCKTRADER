@@ -13,4 +13,5 @@ scikit-learn
 xgboost
 streamlit-autorefresh
 schedule
+pytest
 
