@@ -27,7 +27,14 @@ def generate_ml_data(api_key):
     # A simple mock for the argparse Namespace object
     class MockArgs:
         def __init__(self, api_key, skip_db=True):
-            self.api_key = api_key; self.skip_db = skip_db; self.db_name=None; self.db_user=None; self.db_password=None; self.db_host=None; self.db_port=None
+            self.api_key = api_key
+            self.skip_db = skip_db
+            self.db_name = None
+            self.db_user = None
+            self.db_password = None
+            self.db_host = None
+            self.db_port = None
+            self.ticker = None  # Add missing ticker attribute expected by run_pipeline
 
     # Run the main data pipeline to get processed_data.csv
     run_the_pipeline(MockArgs(api_key=api_key))
@@ -62,7 +69,8 @@ def generate_ml_data(api_key):
 def prepare_data_for_training(df):
     """Splits and scales the feature-engineered data."""
     print("\n--- Step 2: Splitting and Scaling Data ---")
-    X = df.drop(columns=[TARGET_VARIABLE, 'Date', 'Ticker'])
+    # Drop the target, identifiers, and the source of the target ('next_day_close')
+    X = df.drop(columns=[TARGET_VARIABLE, 'Date', 'Ticker', 'next_day_close'])
     y = df[TARGET_VARIABLE]
 
     split_index = int(len(df) * TRAIN_SPLIT_FRACTION)
