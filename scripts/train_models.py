@@ -10,6 +10,7 @@ import os
 import sys
 import warnings
 import argparse
+import json
 
 # Add root to path and suppress warnings
 warnings.filterwarnings('ignore')
@@ -77,13 +78,21 @@ def prepare_data_for_training(df):
     X_train, X_test = X[:split_index], X[split_index:]
     y_train, y_test = y[:split_index], y[split_index:]
 
+    # Save the column order from the training data
+    training_columns = X_train.columns.tolist()
+
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
 
     os.makedirs(MODELS_DIR, exist_ok=True)
     joblib.dump(scaler, os.path.join(MODELS_DIR, 'scaler.pkl'))
-    print("Data split and scaled. Scaler saved.")
+
+    # Save the training columns for use during prediction
+    with open(os.path.join(MODELS_DIR, 'training_columns.json'), 'w') as f:
+        json.dump(training_columns, f)
+
+    print("Data split and scaled. Scaler and training columns saved.")
     return X_train_scaled, X_test_scaled, y_train, y_test
 
 def train_and_evaluate(X_train, y_train, X_test, y_test):

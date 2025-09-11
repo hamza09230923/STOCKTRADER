@@ -11,6 +11,7 @@ from dashboard_utils import load_data, add_ticker_to_config
 import subprocess
 import joblib
 from xgboost import XGBClassifier
+import json
 
 st.set_page_config(
     page_title="Dashboard",
@@ -127,16 +128,20 @@ def get_prediction(ticker_df, latest_data):
     # Get the row corresponding to the latest data
     features_df = df[df['Date'] == latest_data['Date']].copy()
 
-    # Define feature columns based on training script (excluding identifiers and target)
-    feature_cols = [
-        'Open', 'High', 'Low', 'Close', 'Volume', 'vader_avg_score',
-        'finbert_avg_score', 'article_count', 'price_change_1d',
-        'price_change_5d', 'vader_1d_lag', 'finbert_1d_lag', 'sma_7d',
-        'sma_30d', 'rsi_14d'
-    ]
+    # Load the exact feature columns and order from training
+    try:
+        with open('models/training_columns.json', 'r') as f:
+            training_columns = json.load(f)
+    except FileNotFoundError:
+        st.error("`training_columns.json` not found. Please retrain the models.")
+        return None, None
 
-    features_df = features_df[feature_cols].dropna()
+    # Ensure all required columns are present and in the correct order
+    features_df = features_df.reindex(columns=training_columns).dropna()
+
     if features_df.empty:
+        # This can happen if the latest row has NaN values after feature engineering
+        st.warning("Not enough data for the latest day to make a prediction.")
         return None, None
 
     # Scale features and predict
