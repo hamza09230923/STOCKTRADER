@@ -54,6 +54,7 @@ with param_col1:
 with param_col2:
     sell_threshold = st.slider("Sell Sentiment Threshold", -1.0, 0.0, -0.2, 0.05)
 
+
 # --- Sentiment Insights ---
 st.subheader("Data Insights for Selected Range")
 insights_data = data_df[
@@ -77,6 +78,7 @@ else:
     st.warning("No data available for the selected stock and date range to show insights.")
 
 
+
 # --- Backtest Execution ---
 if st.button("Run Backtest"):
     if start_date > end_date:
@@ -90,7 +92,11 @@ if st.button("Run Backtest"):
                 (data_df['Date'].dt.date <= end_date)
             ].copy()
 
+
             # Use the correct sentiment score column
+
+
+  
             if 'vader_avg_score' in backtest_data.columns:
                 backtest_data['sentiment_score'] = backtest_data['vader_avg_score']
             else:
@@ -127,6 +133,7 @@ if st.button("Run Backtest"):
                     st.dataframe(stats_display)
 
                     st.info("Note: Plot generation is a planned future improvement.")
+
 
             except Exception as e:
                 st.error(f"An error occurred during the backtest: {e}")
