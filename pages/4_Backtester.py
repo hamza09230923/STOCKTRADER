@@ -103,6 +103,7 @@ if st.button("Run Backtest"):
                 if 'Duration' in stats_display.index:
                     stats_display['Duration'] = str(stats_display['Duration'])
                 st.dataframe(stats_display)
+=
 
                 # Note on plotting
                 st.info("Note: Plot generation is a planned future improvement. The `backtesting.py` library's default plot opens a new browser window, which is not ideal for Streamlit.")
