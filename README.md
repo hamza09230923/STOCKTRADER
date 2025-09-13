@@ -1,6 +1,22 @@
 # Stock Market + News Sentiment Tracker
 
-A comprehensive, end-to-end data pipeline and visualization dashboard that tracks stock prices and financial news sentiment. This project aims to explore the correlation between market sentiment and stock performance. It also includes a machine learning pipeline to predict stock price movements based on historical data and sentiment scores.
+A comprehensive, end-to-end data pipeline and multi-page visualization dashboard that tracks stock prices and financial news sentiment. This project aims to explore the correlation between market sentiment and stock performance, and includes a machine learning pipeline to predict stock price movements.
+
+![Dashboard Screenshot](https://via.placeholder.com/800x400.png?text=Dashboard+Screenshot+Here)
+
+---
+
+## ✨ Tech Stack
+
+*   **Data Pipeline:** Python, Pandas, Yahoo Finance API (yfinance), Finlight.me API
+*   **Sentiment Analysis:** VADER, FinBERT (Hugging Face Transformers)
+*   **Database:** PostgreSQL
+*   **Dashboard:** Streamlit, Plotly
+*   **Machine Learning:** Scikit-learn, XGBoost
+*   **Backtesting:** backtesting.py
+*   **Deployment:** Heroku, Streamlit Community Cloud
+
+---
 
 ## 🎯 Features
 
@@ -11,11 +27,16 @@ A comprehensive, end-to-end data pipeline and visualization dashboard that track
     *   Transforms and merges the data into a single, clean dataset.
     *   Loads the final data into a PostgreSQL database using a robust upsert mechanism.
 
-*   **Interactive Dashboard (`dashboard.py`):**
-    *   A web-based dashboard built with Streamlit and Plotly.
-    *   Visualizes stock price, trading volume, and sentiment scores over time.
-    *   Provides interactive controls to select stocks and date ranges.
-    *   Features a professional and clean user interface.
+*   **Interactive Multi-Page Dashboard:**
+    *   **Home:** A welcoming landing page that provides an overview of the app's features.
+    *   **Dashboard:** Visualizes stock price, trading volume, and sentiment scores over time with interactive charts. Includes ML-powered price movement predictions.
+    *   **Data Explorer:** Allows users to view, sort, and filter the raw, processed data.
+    *   **About:** Provides information about the project, data sources, and technologies used.
+
+*   **Sentiment-Based Backtesting Engine:**
+    *   A new page to backtest trading strategies based on sentiment scores.
+    *   Allows users to select a stock, date range, and tune strategy parameters.
+    *   Displays detailed performance metrics and statistics for the backtest.
 
 *   **ML Model Training Pipeline (`scripts/train_models.py`):**
     *   Performs feature engineering to create a dataset for predicting stock price movements.
@@ -23,7 +44,32 @@ A comprehensive, end-to-end data pipeline and visualization dashboard that track
     *   Saves the trained models for future use.
 
 *   **Automated Scheduler (`scheduler.py`):**
-    *   Runs the data pipeline automatically at a configurable interval.
+    *   Runs the data pipeline automatically at a configurable interval to keep the data fresh.
+
+---
+
+## 📁 Project Structure
+
+```
+.
+├── .streamlit/
+│   └── config.toml         # Streamlit theme configuration
+├── models/                 # Saved machine learning models
+├── notebooks/              # Jupyter notebooks for analysis
+├── pages/                  # Streamlit pages
+│   ├── 1_Dashboard.py
+│   ├── 2_Data_Explorer.py
+│   ├── 3_About.py
+│   └── 4_Backtester.py
+├── scripts/                # Helper and training scripts
+├── src/                    # Source code for dashboard and sentiment analysis
+├── Home.py                 # Main application file for Streamlit
+├── requirements.txt        # Project dependencies
+├── run_pipeline.py         # Master script for the ETL data pipeline
+└── ...
+```
+
+---
 
 ## ⚙️ Setup
 
@@ -33,146 +79,95 @@ A comprehensive, end-to-end data pipeline and visualization dashboard that track
     cd <repository_directory>
     ```
 
-2.  **Install dependencies:**
-    It is highly recommended to use a Python virtual environment.
+2.  **Create a virtual environment (recommended):**
     ```bash
     python -m venv venv
     source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
-    pip install -r requirements.txt
     ```
 
-3.  **Configure the application:**
-    *   Rename the `config.py.example` file to `config.py`.
-    *   Open `config.py` and add your Finlight API key and database credentials. It is highly recommended to use environment variables for these secrets.
+3.  **Install dependencies:**
+    *   The `psycopg2` library requires PostgreSQL client libraries. On Debian/Ubuntu, you can install them with:
+        ```bash
+        sudo apt-get update && sudo apt-get install libpq-dev
+        ```
+    *   Install the Python packages:
+        ```bash
+        pip install -r requirements.txt
+        ```
+
+4.  **Configure the application:**
+    This project uses a `config.py` file for configuration, but it is highly recommended to use environment variables, especially for production and deployment.
+    *   Create a `.env` file in the root directory (this is ignored by `.gitignore`).
+    *   Add your secrets to the `.env` file. Refer to `config.py.example` for the required variable names (`FINLIGHT_API_KEY`, `DB_NAME`, etc.). The application will automatically load these variables.
+
+---
 
 ## 🚀 How to Run
 
 ### 1. Running the Data Pipeline Manually
-
-The `run_pipeline.py` script executes the entire ETL (Extract, Transform, Load) process. It will generate a `processed_data.csv` file in the `data/` directory and load the data into the configured PostgreSQL database.
-
+The `run_pipeline.py` script executes the entire ETL process. It will generate a `processed_data.csv` file and load the data into the configured PostgreSQL database.
 ```bash
 python run_pipeline.py
 ```
-You can also run it without database operations:
+To skip database operations and only generate the CSV:
 ```bash
 python run_pipeline.py --skip-db
 ```
 
 ### 2. Running the Interactive Dashboard
-
-The `dashboard.py` script launches the web application. Make sure you have run the pipeline at least once to generate the necessary data.
-
+The `Home.py` script launches the web application. Make sure you have run the pipeline at least once or have a `processed_data.csv` file available.
 ```bash
-streamlit run dashboard.py
+streamlit run Home.py
 ```
 
 ### 3. Running the Pipeline on a Schedule
-
 The `scheduler.py` script runs the data pipeline at a regular interval.
-
 ```bash
 python scheduler.py --interval-hours 4
 ```
 
 ### 4. Training the ML Models
-
-The `scripts/train_models.py` script runs the full ML pipeline, from data generation to model training. You must provide your Finlight API key.
-
+The `scripts/train_models.py` script runs the full ML pipeline. You must provide your Finlight API key.
 ```bash
 python scripts/train_models.py --api-key "your_finlight_api_key"
 ```
 
-## 📁 Project Structure
+---
 
-```
-.
-├── .streamlit/
-│   └── config.toml         # Streamlit theme configuration
-├── config.py               # Main configuration file (ignored by git)
-├── config.py.example       # Example configuration file
-├── data/                   # Output directory for CSV files (created on run)
-│   └── .gitkeep
-├── models/                 # Saved machine learning models
-│   ├── logistic_regression_model.pkl
-│   ├── scaler.pkl
-│   └── xgboost_model.pkl
-├── notebooks/              # Jupyter notebooks for analysis
-│   └── 01-EDA-and-Feature-Engineering.ipynb
-├── scripts/
-│   ├── archive/            # Old/unused scripts
-│   ├── train_models.py     # Script to train predictive models
-│   └── ...
-├── src/
-│   └── sentiment_analysis.py # Core module for VADER and FinBERT analysis
-├── dashboard.py            # Main application file for the Streamlit dashboard
-├── README.md               # This file
-├── requirements.txt        # Project dependencies
-├── run_pipeline.py         # Master script for the ETL data pipeline
-└── scheduler.py            # Script to run the pipeline on a schedule
-```
+## ☁️ Deployment
 
-## 部署
-
-This application is designed to be deployed to a cloud platform. Below are instructions for two popular options: Streamlit Community Cloud (for the dashboard) and Heroku (for both the dashboard and the scheduled data pipeline).
+This application is designed for cloud deployment. Below are instructions for Streamlit Community Cloud and Heroku.
 
 ### Prerequisites
-
-1.  **GitHub Repository:** Your project must be in a public GitHub repository.
-2.  **Cloud-Hosted PostgreSQL Database:** For a live application, you need a database that can be accessed from the internet. Services like [Amazon RDS](https://aws.amazon.com/rds/), [Google Cloud SQL](https://cloud.google.com/sql), or [Heroku Postgres](https://www.heroku.com/postgres) are good options.
-3.  **Platform Accounts:** You will need an account with [Streamlit Community Cloud](https://streamlit.io/cloud) and/or [Heroku](https://www.heroku.com/).
+*   A public GitHub repository for your project.
+*   A cloud-hosted PostgreSQL database (e.g., from AWS RDS, Google Cloud SQL, or Heroku).
+*   Accounts with your chosen hosting provider(s).
 
 ### Environment Variables
-
-Before deploying, you must set the following environment variables on your chosen hosting platform. These correspond to the settings in `config.py`.
-
-*   `FINLIGHT_API_KEY`: Your API key for the Finlight.me service.
-*   `DB_NAME`: The name of your PostgreSQL database.
-*   `DB_USER`: The username for your database.
-*   `DB_PASSWORD`: The password for your database.
-*   `DB_HOST`: The hostname or IP address of your database server.
-*   `DB_PORT`: The port for your database (usually `5432`).
+Before deploying, set the following environment variables on your hosting platform.
+*   `FINLIGHT_API_KEY`
+*   `DB_NAME`
+*   `DB_USER`
+*   `DB_PASSWORD`
+*   `DB_HOST`
+*   `DB_PORT`
 
 ### Option 1: Deploying to Streamlit Community Cloud (Dashboard Only)
-
-Streamlit Community Cloud is the easiest way to deploy the dashboard. Note that this will only deploy the user-facing application, not the data pipeline scheduler. You will need to run the pipeline separately to keep the data fresh.
-
+This is the easiest way to deploy the dashboard. You will need to run the data pipeline separately to keep the data fresh.
 1.  Go to [share.streamlit.io](https://share.streamlit.io/).
 2.  Click "New app" and connect your GitHub account.
-3.  Select the repository and branch for your project.
-4.  Set the "Main file path" to `Home.py`.
-5.  In the "Advanced settings" section, add all the required environment variables (secrets).
-6.  Click "Deploy!".
+3.  Select the repository, branch, and set the "Main file path" to `Home.py`.
+4.  In "Advanced settings," add your environment variables as secrets.
+5.  Click "Deploy!".
 
 ### Option 2: Deploying to Heroku (Dashboard and Scheduler)
-
-Heroku allows you to deploy both the dashboard and the scheduled pipeline.
-
-#### Deploying the Dashboard (Web Dyno)
-
-1.  Create a new app on Heroku.
-2.  Connect your GitHub repository to the Heroku app and enable automatic deploys if desired.
-3.  In the app's "Settings" tab, go to the "Config Vars" section and add all the environment variables listed above.
-4.  Heroku will automatically detect the `Procfile` and start the `web` process to run your dashboard.
-
-#### Deploying the Scheduler (Worker Dyno)
-
-The `scheduler.py` script needs to be run continuously as a worker process.
-
-1.  First, you need to modify the `Procfile` to include a worker process. Change the `Procfile` to:
+Heroku can run both the dashboard and the scheduled pipeline worker.
+1.  Create a `Procfile` in your root directory with the following content:
     ```
     web: sh setup.sh && streamlit run Home.py
     worker: python scheduler.py
     ```
-2.  Commit and push this change to your repository.
-3.  In your Heroku app's "Resources" tab, you should see the `web` and `worker` processes.
-4.  Enable the `worker` dyno. This will run the scheduler continuously. Note that this may incur costs depending on your Heroku plan.
-
-**Alternative for Scheduler (Heroku Scheduler):**
-
-If you don't want a continuously running worker, you can use the Heroku Scheduler add-on to run the pipeline periodically.
-
-1.  In your Heroku app's "Resources" tab, find the "Add-ons" section and add "Heroku Scheduler".
-2.  Open the Heroku Scheduler dashboard.
-3.  Create a new job. Set the schedule (e.g., "Every hour") and for the command, enter: `python run_pipeline.py`.
-4.  This will run the data pipeline on your chosen schedule without needing a persistent worker dyno.
+2.  Create a `packages.txt` file and add `libpq-dev` to it. Heroku will use this to install system-level dependencies.
+3.  In your Heroku app's "Settings" tab, add the required environment variables in the "Config Vars" section.
+4.  In the "Resources" tab, enable the `worker` dyno to run the scheduler. This may incur costs.
+5.  **Alternative:** Use the "Heroku Scheduler" add-on to run `python run_pipeline.py` on a schedule, which can be more cost-effective than a persistent worker dyno.
