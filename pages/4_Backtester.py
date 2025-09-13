@@ -54,6 +54,31 @@ with param_col1:
 with param_col2:
     sell_threshold = st.slider("Sell Sentiment Threshold", -1.0, 0.0, -0.2, 0.05)
 
+
+# --- Sentiment Insights ---
+st.subheader("Data Insights for Selected Range")
+insights_data = data_df[
+    (data_df['Ticker'] == selected_ticker) &
+    (data_df['Date'].dt.date >= start_date) &
+    (data_df['Date'].dt.date <= end_date)
+]
+if not insights_data.empty:
+    with st.expander("Show Sentiment Score Distribution", expanded=False):
+        min_sentiment = insights_data['vader_avg_score'].min()
+        max_sentiment = insights_data['vader_avg_score'].max()
+        mean_sentiment = insights_data['vader_avg_score'].mean()
+
+        insight_col1, insight_col2, insight_col3 = st.columns(3)
+        insight_col1.metric("Min Sentiment Score", f"{min_sentiment:.3f}")
+        insight_col2.metric("Max Sentiment Score", f"{max_sentiment:.3f}")
+        insight_col3.metric("Avg Sentiment Score", f"{mean_sentiment:.3f}")
+
+        st.write("Use these values to help set realistic thresholds for the strategy.")
+else:
+    st.warning("No data available for the selected stock and date range to show insights.")
+
+
+
 # --- Backtest Execution ---
 if st.button("Run Backtest"):
     if start_date > end_date:
@@ -70,6 +95,8 @@ if st.button("Run Backtest"):
 
             # Use the correct sentiment score column
 
+
+  
             if 'vader_avg_score' in backtest_data.columns:
                 backtest_data['sentiment_score'] = backtest_data['vader_avg_score']
             else:
@@ -90,20 +117,22 @@ if st.button("Run Backtest"):
                 st.subheader("Backtest Results")
                 st.write(f"Results for **{selected_ticker}** from **{start_date}** to **{end_date}**")
 
-                # Display key metrics
-                st.metric("Return [%]", f"{stats['Return [%]']:.2f}")
-                st.metric("Win Rate [%]", f"{stats['Win Rate [%]']:.2f}")
-                st.metric("Max. Drawdown [%]", f"{stats['Max. Drawdown [%]']:.2f}")
-                st.metric("# Trades", stats['# Trades'])
+                # Handle the case where no trades were made
+                if stats['# Trades'] == 0:
+                    st.warning("No trades were executed with the current parameters. Try adjusting the sentiment thresholds or expanding the date range.")
+                else:
+                    # Display key metrics
+                    st.metric("Return [%]", f"{stats['Return [%]']:.2f}")
+                    st.metric("Win Rate [%]", f"{stats['Win Rate [%]']:.2f}")
+                    st.metric("Max. Drawdown [%]", f"{stats['Max. Drawdown [%]']:.2f}")
+                    st.metric("# Trades", stats['# Trades'])
 
-                st.subheader("Full Statistics")
+                    st.subheader("Full Statistics")
+                    # Convert the entire stats Series to strings for robust display
+                    stats_display = stats.copy().astype(str)
+                    st.dataframe(stats_display)
 
-               
-                # Convert the entire stats Series to strings for robust display
-                stats_display = stats.copy().astype(str)
-                st.dataframe(stats_display)
-
-                st.info("Note: Plot generation is a planned future improvement.")
+                    st.info("Note: Plot generation is a planned future improvement.")
 
 
             except Exception as e:
