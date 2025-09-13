@@ -67,7 +67,9 @@ if st.button("Run Backtest"):
                 (data_df['Date'].dt.date <= end_date)
             ].copy()
 
+
             # Use the correct sentiment score column
+
             if 'vader_avg_score' in backtest_data.columns:
                 backtest_data['sentiment_score'] = backtest_data['vader_avg_score']
             else:
@@ -95,11 +97,14 @@ if st.button("Run Backtest"):
                 st.metric("# Trades", stats['# Trades'])
 
                 st.subheader("Full Statistics")
+
+               
                 # Convert the entire stats Series to strings for robust display
                 stats_display = stats.copy().astype(str)
                 st.dataframe(stats_display)
 
                 st.info("Note: Plot generation is a planned future improvement.")
+
 
             except Exception as e:
                 st.error(f"An error occurred during the backtest: {e}")
