@@ -69,11 +69,11 @@ if st.button("Run Backtest"):
 
             # The backtesting library expects specific column names.
             # We assume the dataframe has 'Open', 'High', 'Low', 'Close', 'Volume' from Yahoo Finance.
-            # We also need to provide the sentiment score. Let's use vader_compound for now.
-            if 'vader_compound' in backtest_data.columns:
-                backtest_data['sentiment_score'] = backtest_data['vader_compound']
+            # We also need to provide the sentiment score. Let's use vader_avg_score for now.
+            if 'vader_avg_score' in backtest_data.columns:
+                backtest_data['sentiment_score'] = backtest_data['vader_avg_score']
             else:
-                st.error("Fatal: 'vader_compound' column not found in the data.")
+                st.error("Fatal: 'vader_avg_score' column not found in the data.")
                 st.stop()
 
             # Set the Date as the index

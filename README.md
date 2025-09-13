@@ -32,7 +32,7 @@ A comprehensive, end-to-end data pipeline and multi-page visualization dashboard
     *   **Dashboard:** Visualizes stock price, trading volume, and sentiment scores over time with interactive charts. Includes ML-powered price movement predictions.
     *   **Data Explorer:** Allows users to view, sort, and filter the raw, processed data.
     *   **About:** Provides information about the project, data sources, and technologies used.
-    
+
 *   **Sentiment-Based Backtesting Engine:**
     *   A new page to backtest trading strategies based on sentiment scores.
     *   Allows users to select a stock, date range, and tune strategy parameters.
