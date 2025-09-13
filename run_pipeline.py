@@ -21,6 +21,7 @@ except ImportError:
 # Add src to path to import sentiment_analysis
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 from src.sentiment_analysis import analyze_vader_sentiment, analyze_finbert_sentiment
+from src.reddit_client import fetch_reddit_data
 
 # ============================================================================== 
 # STEP 1: STOCK DATA EXTRACTION
@@ -231,15 +232,30 @@ def run_the_pipeline(args):
 
     stock_df = fetch_stock_data(tickers)
 
-    if config.FINLIGHT_API_KEY == "YOUR_API_KEY_HERE":
-        print("WARNING: Finlight API key is not set in config.py. Skipping news fetching.")
-        news_df = pd.DataFrame()
-    else:
+    # --- Fetch News Data ---
+    all_news_dfs = []
+    if config.FINLIGHT_API_KEY != "YOUR_API_KEY_HERE":
         api = FinlightApi(ApiConfig(api_key=config.FINLIGHT_API_KEY))
-        news_df = fetch_all_news(api, tickers)
+        finlight_news_df = fetch_all_news(api, tickers)
+        if finlight_news_df is not None:
+            all_news_dfs.append(finlight_news_df)
+    else:
+        print("WARNING: Finlight API key is not set. Skipping Finlight news.")
+
+    # --- Fetch Reddit Data ---
+    reddit_df = fetch_reddit_data(tickers, config.SUBREDDITS)
+    if not reddit_df.empty:
+        all_news_dfs.append(reddit_df)
+
+    # --- Combine News Sources ---
+    if all_news_dfs:
+        combined_news_df = pd.concat(all_news_dfs, ignore_index=True)
+    else:
+        print("WARNING: No news data could be fetched from any source.")
+        combined_news_df = pd.DataFrame()
 
     if stock_df is not None:
-        final_df = transform_data(stock_df, news_df)
+        final_df = transform_data(stock_df, combined_news_df)
 
         print(f"\n--- Saving processed data to {config.PROCESSED_CSV_PATH} for inspection ---")
         os.makedirs(os.path.dirname(config.PROCESSED_CSV_PATH), exist_ok=True)
