@@ -1,4 +1,12 @@
 import streamlit as st
+import sys
+import os
+import pandas as pd
+
+# Add src to path to import dashboard_utils
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from src.dashboard_utils import load_data
+from src.backtesting_engine import SentimentStrategy, run_backtest
 
 st.set_page_config(
     page_title="Backtester",
@@ -9,14 +17,6 @@ st.set_page_config(
 st.title("🧪 Sentiment-Based Trading Strategy Backtester")
 st.markdown("This page allows you to backtest a simple trading strategy based on financial news sentiment.")
 st.markdown("---")
-
-# --- Add src to path ---
-import sys
-import os
-import pandas as pd
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from src.dashboard_utils import load_data
-from src.backtesting_engine import SentimentStrategy, run_backtest
 
 # --- Load Data ---
 data_df, source = load_data()
@@ -67,9 +67,9 @@ if st.button("Run Backtest"):
                 (data_df['Date'].dt.date <= end_date)
             ].copy()
 
-            # The backtesting library expects specific column names.
-            # We assume the dataframe has 'Open', 'High', 'Low', 'Close', 'Volume' from Yahoo Finance.
-            # We also need to provide the sentiment score. Let's use vader_avg_score for now.
+
+            # Use the correct sentiment score column
+
             if 'vader_avg_score' in backtest_data.columns:
                 backtest_data['sentiment_score'] = backtest_data['vader_avg_score']
             else:
@@ -97,16 +97,14 @@ if st.button("Run Backtest"):
                 st.metric("# Trades", stats['# Trades'])
 
                 st.subheader("Full Statistics")
-                # Make a copy to avoid modifying the original stats object
-                stats_display = stats.copy()
-                # Convert Timedelta to string for display, if it exists
-                if 'Duration' in stats_display.index:
-                    stats_display['Duration'] = str(stats_display['Duration'])
-                st.dataframe(stats_display)
-=
 
-                # Note on plotting
-                st.info("Note: Plot generation is a planned future improvement. The `backtesting.py` library's default plot opens a new browser window, which is not ideal for Streamlit.")
+               
+                # Convert the entire stats Series to strings for robust display
+                stats_display = stats.copy().astype(str)
+                st.dataframe(stats_display)
+
+                st.info("Note: Plot generation is a planned future improvement.")
+
 
             except Exception as e:
                 st.error(f"An error occurred during the backtest: {e}")
