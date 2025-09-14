@@ -24,16 +24,19 @@ class SentimentStrategy(Strategy):
         Define the trading logic for the next data point (e.g., the next day).
         This is called for each data point in the dataset.
         """
+        # Use the current sentiment value for decision making.
+        current_sentiment = self.sentiment[0]
+
         # If we have no position and sentiment is strongly positive, go long.
-        if not self.position and self.sentiment[-1] > self.buy_sentiment_threshold:
+        if not self.position and current_sentiment > self.buy_sentiment_threshold:
             self.buy()
 
         # If we have a position and sentiment turns negative, close the position.
-        elif self.position and self.sentiment[-1] < self.sell_sentiment_threshold:
+        elif self.position and current_sentiment < self.sell_sentiment_threshold:
             self.position.close()
 
 
-def run_backtest(data: pd.DataFrame, strategy: Strategy, cash: int = 10000, commission: float = 0.002):
+def run_backtest(data: pd.DataFrame, strategy: Strategy, cash: int = 10000, commission: float = 0.002, **kwargs):
     """
     Runs a backtest on the given data using the specified strategy.
 
@@ -42,6 +45,7 @@ def run_backtest(data: pd.DataFrame, strategy: Strategy, cash: int = 10000, comm
         strategy (Strategy): The strategy class to use for the backtest.
         cash (int, optional): The initial cash amount. Defaults to 10000.
         commission (float, optional): The commission rate for each trade. Defaults to 0.002.
+        **kwargs: Additional keyword arguments to pass to the strategy.
 
     Returns:
         A pandas Series with the backtest statistics.
@@ -55,7 +59,9 @@ def run_backtest(data: pd.DataFrame, strategy: Strategy, cash: int = 10000, comm
     # 'Open', 'High', 'Low', 'Close', 'Volume'
 
     bt = Backtest(data, strategy, cash=cash, commission=commission)
-    stats = bt.run()
+
+    # Pass strategy parameters via kwargs to bt.run()
+    stats = bt.run(**kwargs)
 
     # The bt.plot() function opens a browser window, which is not ideal for Streamlit.
     # We will return the stats object and let the Streamlit page handle the plotting if needed.

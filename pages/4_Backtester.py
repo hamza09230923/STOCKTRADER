@@ -106,13 +106,15 @@ if st.button("Run Backtest"):
             # Set the Date as the index
             backtest_data = backtest_data.set_index('Date')
 
-            # Configure the strategy with user-defined parameters
-            class CustomSentimentStrategy(SentimentStrategy):
-                buy_sentiment_threshold = buy_threshold
-                sell_sentiment_threshold = sell_threshold
-
             try:
-                stats = run_backtest(backtest_data, CustomSentimentStrategy, cash=initial_cash)
+                # Run the backtest, passing the thresholds as keyword arguments
+                stats = run_backtest(
+                    backtest_data,
+                    SentimentStrategy,
+                    cash=initial_cash,
+                    buy_sentiment_threshold=buy_threshold,
+                    sell_sentiment_threshold=sell_threshold
+                )
 
                 st.subheader("Backtest Results")
                 st.write(f"Results for **{selected_ticker}** from **{start_date}** to **{end_date}**")
