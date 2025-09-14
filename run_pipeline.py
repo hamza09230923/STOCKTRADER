@@ -24,6 +24,7 @@ from src.sentiment_analysis import analyze_vader_sentiment, analyze_finbert_sent
 from src.reddit_client import fetch_reddit_data
 from src.twitter_client import fetch_twitter_data
 
+
 # ============================================================================== 
 # STEP 1: STOCK DATA EXTRACTION
 # ============================================================================== 
@@ -269,6 +270,7 @@ def run_the_pipeline(args):
     twitter_df = fetch_twitter_data(tickers)
     if not twitter_df.empty:
         all_news_dfs.append(twitter_df)
+
 
     # --- Combine News Sources ---
     if all_news_dfs:
