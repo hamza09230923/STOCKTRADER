@@ -30,9 +30,10 @@ def generate_summary(articles_df: pd.DataFrame) -> str:
     if articles_df.empty or 'title' not in articles_df.columns:
         return "No articles provided to summarize."
 
-    # Concatenate all article titles/texts into a single block of text.
-    # Using a separator to help the model distinguish between articles.
-    full_text = ". ".join(articles_df['title'].astype(str).tolist())
+    # Drop missing values, convert to string, and concatenate into a single text block.
+    # This prevents 'nan' strings from being passed to the model.
+    valid_titles = articles_df['title'].dropna().astype(str)
+    full_text = ". ".join(valid_titles.tolist())
 
     if not full_text.strip():
         return "The provided articles are empty."
