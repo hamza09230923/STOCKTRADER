@@ -8,6 +8,7 @@ from streamlit_autorefresh import st_autorefresh
 # Add src to path to import dashboard_utils
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 from dashboard_utils import load_data, add_ticker_to_config
+from advanced_analysis import generate_summary, perform_topic_modeling
 import subprocess
 import joblib
 from xgboost import XGBClassifier
@@ -195,6 +196,54 @@ if not filtered_df.empty:
         st.metric(label="Total News Articles", value=f"{int(total_articles)}")
 else:
     st.warning("No data available for the selected date range.")
+
+# --- AI Analysis Expander ---
+with st.expander("🤖 **AI-Powered Analysis**"):
+    st.info("Click the buttons below to run advanced analysis on the news for the selected date range. This may take a moment.")
+
+    col1, col2 = st.columns(2)
+    summary_key = f'summary_{selected_ticker}_{selected_start_date}_{selected_end_date}'
+    topics_key = f'topics_{selected_ticker}_{selected_start_date}_{selected_end_date}'
+
+    # --- Summarization Button ---
+    with col1:
+        if st.button("Generate News Summary"):
+            if 'headlines' in filtered_df.columns and not filtered_df['headlines'].str.strip().eq('').all():
+                with st.spinner("Generating summary... please wait."):
+                    summary_input_df = pd.DataFrame({'title': filtered_df['headlines'][filtered_df['headlines'].str.strip().ne('')]})
+                    st.session_state[summary_key] = generate_summary(summary_input_df)
+            else:
+                st.session_state[summary_key] = "No news headlines available to summarize for this period."
+
+    # --- Topic Modeling Button ---
+    with col2:
+        if st.button("Identify Key Topics"):
+            if 'headlines' in filtered_df.columns and not filtered_df['headlines'].str.strip().eq('').all():
+                with st.spinner("Performing topic modeling... please wait."):
+                    topic_input_df = pd.DataFrame({'title': filtered_df['headlines'][filtered_df['headlines'].str.strip().ne('')]})
+                    st.session_state[topics_key] = perform_topic_modeling(topic_input_df)
+            else:
+                st.session_state[topics_key] = None
+
+    # --- Display Results ---
+    if summary_key in st.session_state and st.session_state[summary_key]:
+        st.markdown("---")
+        st.subheader("Generated News Summary")
+        st.markdown(f"> {st.session_state[summary_key]}")
+
+    if topics_key in st.session_state and st.session_state[topics_key] is not None:
+        st.markdown("---")
+        st.subheader("Identified Key Topics")
+        # Filter out the outlier topic (-1) which contains all noise
+        display_topics = st.session_state[topics_key][st.session_state[topics_key].Topic != -1]
+        st.dataframe(
+            display_topics,
+            column_config={
+                "Name": "Topic Keywords",
+                "Count": "Article Count"
+            },
+            hide_index=True
+        )
 
 st.markdown("---")
 

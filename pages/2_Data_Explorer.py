@@ -6,6 +6,7 @@ import os
 # Add src to path to import dashboard_utils
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 from dashboard_utils import load_data
+from advanced_analysis import analyze_aspect_sentiment
 
 st.set_page_config(
     page_title="Data Explorer",
@@ -57,6 +58,37 @@ with col3:
     sentiment_threshold = st.slider("Minimum FinBERT Score", min_value=-1.0, max_value=1.0, value=-1.0, step=0.1)
     filtered_df = filtered_df[filtered_df['finbert_avg_score'] >= sentiment_threshold]
 
+# --- ABSA Analysis Expander ---
+with st.expander("🔬 **Aspect-Based Sentiment Analysis (ABSA)**"):
+    st.info("Analyze the sentiment towards specific tickers within the news headlines shown below. This provides a more granular view than the daily average sentiment.")
+
+    # Use a unique key for the session state based on the filtered data's hash
+    # This is a bit complex, but ensures we don't show old results for new filters
+    filtered_hash = pd.util.hash_pandas_object(filtered_df).sum()
+    absa_key = f'absa_results_{filtered_hash}'
+
+    if st.button("Run ABSA on Filtered Data"):
+        if 'headlines' in filtered_df.columns and not filtered_df['headlines'].str.strip().eq('').all():
+            with st.spinner("Performing ABSA... This is computationally intensive and may take some time."):
+                # Create the input dataframe and the list of aspects (tickers)
+                absa_input_df = pd.DataFrame({'title': filtered_df['headlines'][filtered_df['headlines'].str.strip().ne('')]})
+                aspects = filtered_df['Ticker'].unique().tolist()
+
+                # Run the analysis
+                absa_results_df = analyze_aspect_sentiment(absa_input_df, aspects)
+                st.session_state[absa_key] = absa_results_df
+        else:
+            st.warning("No headlines available in the filtered data to analyze.")
+            st.session_state[absa_key] = None
+
+    # Display the results if they exist in the session state
+    if absa_key in st.session_state:
+        results = st.session_state[absa_key]
+        if results is not None and not results.empty:
+            st.subheader("ABSA Results")
+            st.dataframe(results, use_container_width=True)
+        elif results is None:
+            st.info("No aspects found in the current selection of headlines.")
 
 # --- Interactive Data Table ---
 st.data_editor(
