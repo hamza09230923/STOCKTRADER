@@ -19,3 +19,4 @@ Bokeh
 praw
 tweepy
 bertopic
+sentencepiece
