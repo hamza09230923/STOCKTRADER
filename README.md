@@ -8,7 +8,7 @@ A comprehensive, end-to-end data pipeline and multi-page visualization dashboard
 
 ## ✨ Tech Stack
 
-*   **Data Pipeline:** Python, Pandas, Yahoo Finance API (yfinance), Finlight.me API
+*   **Data Pipeline:** Python, Pandas, Yahoo Finance API (yfinance), Finlight.me API, Reddit API, Twitter API
 *   **Sentiment Analysis:** VADER, FinBERT (Hugging Face Transformers)
 *   **Database:** PostgreSQL
 *   **Dashboard:** Streamlit, Plotly
@@ -22,8 +22,8 @@ A comprehensive, end-to-end data pipeline and multi-page visualization dashboard
 
 *   **Automated Data Pipeline (`run_pipeline.py`):**
     *   Fetches 5 years of historical stock data from Yahoo Finance.
-    *   Fetches recent financial news from the Finlight.me API.
-    *   Performs sentiment analysis on news headlines using both VADER and FinBERT.
+    *   Fetches recent financial news and social media sentiment from the Finlight.me API, Reddit, and Twitter.
+    *   Performs sentiment analysis on news headlines and posts using both VADER and FinBERT.
     *   Transforms and merges the data into a single, clean dataset.
     *   Loads the final data into a PostgreSQL database using a robust upsert mechanism.
 
@@ -68,6 +68,34 @@ A comprehensive, end-to-end data pipeline and multi-page visualization dashboard
 ├── run_pipeline.py         # Master script for the ETL data pipeline
 └── ...
 ```
+
+---
+
+## 📊 Data Sources
+
+This project aggregates data from multiple sources to provide a comprehensive view of stock performance and market sentiment.
+
+*   **Yahoo Finance:** Used via the `yfinance` library to fetch historical stock price data (OHLCV).
+*   **Finlight.me:** Provides financial news articles. Requires a free API key.
+*   **Reddit:** Fetches posts from specified subreddits (e.g., `r/wallstreetbets`, `r/stocks`) that mention the tracked tickers. Requires Reddit API credentials (Client ID, Client Secret).
+*   **Twitter (X):** Fetches recent tweets that mention the tracked tickers. Requires a Twitter/X Developer account and an App-only Bearer Token from the v2 API.
+
+### API Key Instructions
+
+To use all data sources, you will need to acquire API keys from the respective platforms:
+
+1.  **Finlight.me:** Get a free API key at [finlight.me](https://finlight.me/).
+2.  **Reddit:**
+    *   Go to [Reddit's App Preferences](https://www.reddit.com/prefs/apps).
+    *   Click "are you a developer? create an app...".
+    *   Fill out the form (select "script" for the app type).
+    *   Your Client ID will be under the app name, and the Client Secret will be labeled "secret".
+3.  **Twitter (X):**
+    *   Apply for a [Twitter Developer Account](https://developer.twitter.com/en/apply-for-access).
+    *   Once approved, create a new App in your developer portal.
+    *   Generate the "Bearer Token" for your app. This is the only key needed for this project's Twitter integration.
+
+Once you have your keys, add them to your `config.py` file or set them as environment variables.
 
 ---
 
