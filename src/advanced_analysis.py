@@ -37,16 +37,17 @@ def generate_summary(articles_df: pd.DataFrame) -> str:
     if not full_text.strip():
         return "The provided articles are empty."
 
-    # The model has a max input length. We must truncate the text to avoid errors.
-    # The default max length for this model is 1024 tokens.
-    max_length = 1024
-    if len(full_text) > max_length * 4: # A rough heuristic for character to token conversion
-        print(f"Warning: Input text is very long, truncating to ~{max_length} tokens for summarization.")
-        full_text = full_text[:max_length * 4]
 
     try:
-        # Generate the summary. We specify min and max length for the output.
-        summary_result = summarizer(full_text, max_length=150, min_length=30, do_sample=False)
+        # Generate the summary. Let the pipeline handle truncation automatically.
+        summary_result = summarizer(
+            full_text,
+            max_length=150,
+            min_length=30,
+            do_sample=False,
+            truncation=True  # Let the pipeline handle long texts
+        )
+
         return summary_result[0]['summary_text']
     except Exception as e:
         print(f"Error during summarization: {e}")
@@ -100,7 +101,13 @@ def perform_topic_modeling(articles_df: pd.DataFrame):
 # --- Aspect-Based Sentiment Analysis (ABSA) Setup ---
 print("Initializing ABSA pipeline (this may take a moment)...")
 try:
-    absa_classifier = pipeline("text-classification", model="yangheng/deberta-v3-base-absa-v1.1")
+    # Using use_fast=False to ensure compatibility if the fast tokenizer fails.
+    absa_classifier = pipeline(
+        "text-classification",
+        model="yangheng/deberta-v3-base-absa-v1.1",
+        use_fast=False
+    )
+
     print("ABSA pipeline initialized successfully.")
 except Exception as e:
     print(f"CRITICAL: Failed to initialize ABSA pipeline: {e}")
