@@ -21,6 +21,8 @@ except ImportError:
 # Add src to path to import sentiment_analysis
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 from src.sentiment_analysis import analyze_vader_sentiment, analyze_finbert_sentiment
+from src.reddit_client import fetch_reddit_data
+from src.twitter_client import fetch_twitter_data
 
 # ============================================================================== 
 # STEP 1: STOCK DATA EXTRACTION
@@ -112,25 +114,41 @@ def transform_data(stock_df, news_df):
         news_with_sentiment['finbert_numeric_score'] * news_with_sentiment['finbert_score']
     )
     news_with_sentiment['Date'] = pd.to_datetime(news_with_sentiment['publish_date']).dt.date
+    # Aggregate sentiment and collect headlines
+    def join_titles(series):
+        """Joins titles into a single string, handling potential non-string data."""
+        return ". ".join(series.astype(str).tolist())
+
     agg_funcs = {
         'vader_score': 'mean',
         'finbert_weighted_score': 'mean',
-        'title': 'count'
+        'title': ['count', join_titles]
     }
-    daily_sentiment = news_with_sentiment.groupby(['ticker', 'Date']).agg(agg_funcs).reset_index()
+    daily_sentiment = news_with_sentiment.groupby(['ticker', 'Date']).agg(agg_funcs)
+
+    # Flatten the multi-level column index
+    daily_sentiment.columns = ['_'.join(col).strip() for col in daily_sentiment.columns.values]
+    daily_sentiment.reset_index(inplace=True)
+
     daily_sentiment.rename(columns={
         'ticker': 'Ticker',
-        'title': 'article_count',
-        'vader_score': 'vader_avg_score',
-        'finbert_weighted_score': 'finbert_avg_score'
+        'title_count': 'article_count',
+        'title_join_titles': 'headlines',
+        'vader_score_mean': 'vader_avg_score',
+        'finbert_weighted_score_mean': 'finbert_avg_score'
     }, inplace=True)
 
     # Merge data
     stock_df['Date'] = pd.to_datetime(stock_df['Date'].dt.date)
     daily_sentiment['Date'] = pd.to_datetime(daily_sentiment['Date'])
     final_df = pd.merge(stock_df, daily_sentiment, on=['Date', 'Ticker'], how='left')
-    sentiment_cols = ['vader_avg_score', 'finbert_avg_score', 'article_count']
-    final_df[sentiment_cols] = final_df[sentiment_cols].fillna(0)
+
+    # Fill NA values for rows with no news
+    final_df['article_count'] = final_df['article_count'].fillna(0).astype(int)
+    final_df['vader_avg_score'] = final_df['vader_avg_score'].fillna(0)
+    final_df['finbert_avg_score'] = final_df['finbert_avg_score'].fillna(0)
+    final_df['headlines'] = final_df['headlines'].fillna('')
+
     print("Data transformation complete.")
     return final_df
 
@@ -171,6 +189,7 @@ def setup_database_table(conn):
         "vader_avg_score" FLOAT,
         "finbert_avg_score" FLOAT,
         "article_count" INTEGER,
+        "headlines" TEXT,
         PRIMARY KEY ("Date", "Ticker")
     );"""
     with conn.cursor() as cur:
@@ -231,15 +250,35 @@ def run_the_pipeline(args):
 
     stock_df = fetch_stock_data(tickers)
 
-    if config.FINLIGHT_API_KEY == "YOUR_API_KEY_HERE":
-        print("WARNING: Finlight API key is not set in config.py. Skipping news fetching.")
-        news_df = pd.DataFrame()
-    else:
+    # --- Fetch News Data ---
+    all_news_dfs = []
+    if config.FINLIGHT_API_KEY != "YOUR_API_KEY_HERE":
         api = FinlightApi(ApiConfig(api_key=config.FINLIGHT_API_KEY))
-        news_df = fetch_all_news(api, tickers)
+        finlight_news_df = fetch_all_news(api, tickers)
+        if finlight_news_df is not None:
+            all_news_dfs.append(finlight_news_df)
+    else:
+        print("WARNING: Finlight API key is not set. Skipping Finlight news.")
+
+    # --- Fetch Reddit Data ---
+    reddit_df = fetch_reddit_data(tickers, config.SUBREDDITS)
+    if not reddit_df.empty:
+        all_news_dfs.append(reddit_df)
+
+    # --- Fetch Twitter Data ---
+    twitter_df = fetch_twitter_data(tickers)
+    if not twitter_df.empty:
+        all_news_dfs.append(twitter_df)
+
+    # --- Combine News Sources ---
+    if all_news_dfs:
+        combined_news_df = pd.concat(all_news_dfs, ignore_index=True)
+    else:
+        print("WARNING: No news data could be fetched from any source.")
+        combined_news_df = pd.DataFrame()
 
     if stock_df is not None:
-        final_df = transform_data(stock_df, news_df)
+        final_df = transform_data(stock_df, combined_news_df)
 
         print(f"\n--- Saving processed data to {config.PROCESSED_CSV_PATH} for inspection ---")
         os.makedirs(os.path.dirname(config.PROCESSED_CSV_PATH), exist_ok=True)

@@ -16,4 +16,6 @@ schedule
 pytest
 backtesting
 Bokeh
-
+praw
+tweepy
+bertopic
