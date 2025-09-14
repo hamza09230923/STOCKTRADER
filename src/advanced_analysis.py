@@ -37,6 +37,7 @@ def generate_summary(articles_df: pd.DataFrame) -> str:
     if not full_text.strip():
         return "The provided articles are empty."
 
+
     try:
         # Generate the summary. Let the pipeline handle truncation automatically.
         summary_result = summarizer(
@@ -46,6 +47,7 @@ def generate_summary(articles_df: pd.DataFrame) -> str:
             do_sample=False,
             truncation=True  # Let the pipeline handle long texts
         )
+
         return summary_result[0]['summary_text']
     except Exception as e:
         print(f"Error during summarization: {e}")
@@ -105,6 +107,7 @@ try:
         model="yangheng/deberta-v3-base-absa-v1.1",
         use_fast=False
     )
+
     print("ABSA pipeline initialized successfully.")
 except Exception as e:
     print(f"CRITICAL: Failed to initialize ABSA pipeline: {e}")
