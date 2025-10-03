@@ -1,21 +1,12 @@
 # Stock Market + News Sentiment Tracker
 
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/release/python-390/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A comprehensive, end-to-end data pipeline and multi-page visualization dashboard that tracks stock prices and financial news sentiment. This project aims to explore the correlation between market sentiment and stock performance, and includes a machine learning pipeline to predict stock price movements.
 
-![Dashboard Screenshot](https://via.placeholder.com/800x400.png?text=Dashboard+Screenshot+Here)
-
 ---
-
-## ✨ Tech Stack
-
-*   **Data Pipeline:** Python, Pandas, Yahoo Finance API (yfinance), Finlight.me API, Reddit API, Twitter API
-*   **Sentiment Analysis:** VADER, FinBERT (Hugging Face Transformers)
-*   **Database:** PostgreSQL
-*   **Dashboard:** Streamlit, Plotly
-*   **Machine Learning:** Scikit-learn, XGBoost
-*   **Backtesting:** backtesting.py
-*   **Deployment:** Heroku, Streamlit Community Cloud
-
 ---
 
 ## 🎯 Features
@@ -48,7 +39,22 @@ A comprehensive, end-to-end data pipeline and multi-page visualization dashboard
 
 ---
 
+## ✨ Tech Stack
+
+*   **Data Pipeline:** Python, Pandas, Yahoo Finance API (yfinance), Finlight.me API, Reddit API, Twitter API
+*   **Sentiment Analysis:** VADER, FinBERT (Hugging Face Transformers)
+*   **Database:** PostgreSQL
+*   **Dashboard:** Streamlit, Plotly
+*   **Machine Learning:** Scikit-learn, XGBoost
+*   **Backtesting:** backtesting.py
+*   **Deployment:** Heroku, Streamlit Community Cloud
+
+---
+
 ## 📁 Project Structure
+
+<details>
+<summary>Click to view the project structure</summary>
 
 ```
 .
@@ -69,93 +75,84 @@ A comprehensive, end-to-end data pipeline and multi-page visualization dashboard
 └── ...
 ```
 
----
-
-## 📊 Data Sources
-
-This project aggregates data from multiple sources to provide a comprehensive view of stock performance and market sentiment.
-
-*   **Yahoo Finance:** Used via the `yfinance` library to fetch historical stock price data (OHLCV).
-*   **Finlight.me:** Provides financial news articles. Requires a free API key.
-*   **Reddit:** Fetches posts from specified subreddits (e.g., `r/wallstreetbets`, `r/stocks`) that mention the tracked tickers. Requires Reddit API credentials (Client ID, Client Secret).
-*   **Twitter (X):** Fetches recent tweets that mention the tracked tickers. Requires a Twitter/X Developer account and an App-only Bearer Token from the v2 API.
-
-### API Key Instructions
-
-To use all data sources, you will need to acquire API keys from the respective platforms:
-
-1.  **Finlight.me:** Get a free API key at [finlight.me](https://finlight.me/).
-2.  **Reddit:**
-    *   Go to [Reddit's App Preferences](https://www.reddit.com/prefs/apps).
-    *   Click "are you a developer? create an app...".
-    *   Fill out the form (select "script" for the app type).
-    *   Your Client ID will be under the app name, and the Client Secret will be labeled "secret".
-3.  **Twitter (X):**
-    *   Apply for a [Twitter Developer Account](https://developer.twitter.com/en/apply-for-access).
-    *   Once approved, create a new App in your developer portal.
-    *   Generate the "Bearer Token" for your app. This is the only key needed for this project's Twitter integration.
-
-Once you have your keys, add them to your `config.py` file or set them as environment variables.
+</details>
 
 ---
 
-## ⚙️ Setup
+## ⚙️ Setup and Configuration
 
-1.  **Clone the repository:**
-    ```bash
-    git clone <repository_url>
-    cd <repository_directory>
-    ```
+### 1. Clone the Repository
+```bash
+git clone <repository_url>
+cd <repository_directory>
+```
 
-2.  **Create a virtual environment (recommended):**
-    ```bash
-    python -m venv venv
-    source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
-    ```
+### 2. Create a Virtual Environment
+It's highly recommended to use a virtual environment to manage project dependencies.
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+```
 
-3.  **Install dependencies:**
-    *   The `psycopg2` library requires PostgreSQL client libraries. On Debian/Ubuntu, you can install them with:
-        ```bash
-        sudo apt-get update && sudo apt-get install libpq-dev
-        ```
-    *   Install the Python packages:
-        ```bash
-        pip install -r requirements.txt
-        ```
+### 3. Install Dependencies
+The `psycopg2` library requires PostgreSQL client libraries. On Debian/Ubuntu, you can install them with:
+```bash
+sudo apt-get update && sudo apt-get install libpq-dev
+```
+Then, install the required Python packages:
+```bash
+pip install -r requirements.txt
+```
 
-4.  **Configure the application:**
-    This project uses a `config.py` file for configuration, but it is highly recommended to use environment variables, especially for production and deployment.
-    *   Create a `.env` file in the root directory (this is ignored by `.gitignore`).
-    *   Add your secrets to the `.env` file. Refer to `config.py.example` for the required variable names (`FINLIGHT_API_KEY`, `DB_NAME`, etc.). The application will automatically load these variables.
+### 4. Configure Environment Variables
+This project uses a `.env` file to manage secrets and configuration variables.
+1.  **Create `.env` file:** Make a copy of `config.py.example` and rename it to `.env`.
+2.  **Add your credentials:** Fill in the required API keys and database credentials in the `.env` file. The application will automatically load these variables.
+
+---
+
+## 📊 Data Sources & API Keys
+
+This project aggregates data from multiple sources. You will need to acquire free API keys for the following services:
+
+| Service       | Data Provided        | Instructions                                                                                                                                                                                                                                                                                       |
+|---------------|----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Yahoo Finance** | Historical stock data (OHLCV) | No API key needed. Data is accessed via the `yfinance` library.                                                                                                                                                                                                                           |
+| **Finlight.me**   | Financial news articles | Get a free API key at [finlight.me](https://finlight.me/).                                                                                                                                                                                                                                         |
+| **Reddit**        | Social media sentiment | Go to [Reddit's App Preferences](https://www.reddit.com/prefs/apps), create a "script" app, and get your `Client ID` and `Client Secret`.                                                                                                                                                        |
+| **Twitter (X)**   | Social media sentiment | Apply for a [Twitter Developer Account](https://developer.twitter.com/en/apply-for-access), create an App in your developer portal, and generate a `Bearer Token` for the v2 API. |
 
 ---
 
 ## 🚀 How to Run
 
-### 1. Running the Data Pipeline Manually
-The `run_pipeline.py` script executes the entire ETL process. It will generate a `processed_data.csv` file and load the data into the configured PostgreSQL database.
+### Running the Data Pipeline
+The `run_pipeline.py` script executes the entire ETL process. It fetches data, performs sentiment analysis, and loads it into your database.
+
+**To run the pipeline and load data into the database:**
 ```bash
 python run_pipeline.py
 ```
-To skip database operations and only generate the CSV:
+
+**To run the pipeline and only generate a local CSV file (skips database operations):**
 ```bash
 python run_pipeline.py --skip-db
 ```
 
-### 2. Running the Interactive Dashboard
-The `Home.py` script launches the web application. Make sure you have run the pipeline at least once or have a `processed_data.csv` file available.
+### Running the Interactive Dashboard
+The `Home.py` script launches the Streamlit web application. Make sure you have run the pipeline at least once or have a `processed_data.csv` file available.
 ```bash
 streamlit run Home.py
 ```
 
-### 3. Running the Pipeline on a Schedule
-The `scheduler.py` script runs the data pipeline at a regular interval.
+### Running the Pipeline on a Schedule
+The `scheduler.py` script runs the data pipeline at a regular interval to keep the data fresh.
 ```bash
 python scheduler.py --interval-hours 4
 ```
 
-### 4. Training the ML Models
-The `scripts/train_models.py` script runs the full ML pipeline. You must provide your Finlight API key.
+### Training the ML Models
+The `scripts/train_models.py` script runs the full ML training pipeline.
 ```bash
 python scripts/train_models.py --api-key "your_finlight_api_key"
 ```
@@ -199,3 +196,21 @@ Heroku can run both the dashboard and the scheduled pipeline worker.
 3.  In your Heroku app's "Settings" tab, add the required environment variables in the "Config Vars" section.
 4.  In the "Resources" tab, enable the `worker` dyno to run the scheduler. This may incur costs.
 5.  **Alternative:** Use the "Heroku Scheduler" add-on to run `python run_pipeline.py` on a schedule, which can be more cost-effective than a persistent worker dyno.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! If you have ideas for improvements or want to fix a bug, please feel free to open an issue or submit a pull request.
+
+1.  **Fork the repository.**
+2.  **Create a new branch** for your feature or bug fix: `git checkout -b feature-name`
+3.  **Make your changes** and commit them with a clear message.
+4.  **Push your changes** to your fork.
+5.  **Submit a pull request** to the main repository.
+
+---
+
+## 📜 License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
