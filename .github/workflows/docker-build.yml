@@ -1,0 +1,38 @@
+name: Build and Push to AWS ECR
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR Public
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          registry-type: public
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: public.ecr.aws
+          ECR_REPOSITORY: financial-dashboard
+          IMAGE_TAG: latest
+        run: |
+          docker build -t $ECR_REGISTRY/${{ secrets.ECR_PUBLIC_REGISTRY_ALIAS }}/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/${{ secrets.ECR_PUBLIC_REGISTRY_ALIAS }}/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/${{ secrets.ECR_PUBLIC_REGISTRY_ALIAS }}/$ECR_REPOSITORY:$IMAGE_TAG"
